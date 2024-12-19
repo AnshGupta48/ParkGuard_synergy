@@ -1,0 +1,2 @@
+Copyright (c) 2019 OpenALPR Technology, Inc.
+This software is part of the OpenALPR commercial software license plate recognition engine.  Its usage requires a commercial software license agreement with OpenALPR Technology, Inc.

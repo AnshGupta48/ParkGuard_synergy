@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Parking Slot Monitoring</h1>
+        <div id="slot-panel">
+            <!-- Slots will be dynamically populated here -->
+        </div>
+    </div>
+
+    <script>
+        function fetchSlotStatus() {
+            $.getJSON("/slot_status", function (data) {
+                if (data.status === "success") {
+                    const slotPanel = $("#slot-panel");
+                    slotPanel.empty();
+
+                    data.slots.forEach(slot => {
+                        const color = slot.status === "vacant" ? "green" : (slot.status === "occupied" ? "red" : "yellow");
+                        slotPanel.append(`
+                            <div class="slot" style="background-color: ${color};">
+                                <p>Slot ID: ${slot.slot_id}</p>
+                                <p>Status: ${slot.status}</p>
+                                <p>Vehicle: ${slot.vehicle_number}</p>
+                            </div>
+                        `);
+                    });
+                } else {
+                    alert("Error fetching slot statuses: " + data.message);
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            fetchSlotStatus();
+            setInterval(fetchSlotStatus, 5000); // Refresh every 5 seconds
+        });
+    </script>
+</body>
+</html>

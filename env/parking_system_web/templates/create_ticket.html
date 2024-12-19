@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Parking Ticket</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Create Parking Ticket</h1>
+        </header>
+
+        <form id="ticketForm" method="POST" action="/create_ticket" enctype="multipart/form-data">
+            <label for="vehicle_number">Enter Vehicle Number:</label>
+            <input type="text" id="vehicle_number" name="vehicle_number" required>
+
+            <label for="vehicle_image">Upload Vehicle Image:</label>
+            <input type="file" id="vehicle_image" name="vehicle_image" accept="image/*" required>
+
+            <button type="submit">Generate Ticket</button>
+        </form>
+        <div id="ticketResult"></div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#ticketForm').submit(function(e) {
+                e.preventDefault();
+                let formData = new FormData(this);
+
+                $.ajax({
+                    url: '/create_ticket',
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            $('#ticketResult').html(`
+                                <p><strong>Ticket Generated Successfully!</strong></p>
+                                <p>Ticket ID: ${response.ticket_id}</p>
+                                <p>Expiry Time: ${response.expiry_time}</p>
+                                <p><a href="${response.qr_code}" target="_blank">View QR Code</a></p>
+                                <p><a href="${response.ticket_pdf}" target="_blank">Download Ticket PDF</a></p>
+                            `);
+                        } else {
+                            $('#ticketResult').html(`<p>Error: ${response.message}</p>`);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -10,7 +10,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>Parking Management System</h1>
+            <h1>ParkGuard</h1>
         </header>
 
         <section>
@@ -21,15 +21,26 @@
 
         <section>
             <h2>Issue a Parking Ticket</h2>
-            <form id="ticketForm">
-                <label for="vehicle_number">Enter Vehicle Number:</label>
-                <input type="text" id="vehicle_number" name="vehicle_number" required>
-                <button type="submit">Generate Ticket</button>
-            </form>
-            <div id="ticketResult"></div>
+            <a href="/create_ticket_page">Go to Ticket Creation Page</a>
         </section>
     </div>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            $('#checkAvailabilityBtn').click(function() {
+                $.ajax({
+                    url: '/check_availability',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            $('#availabilityStatus').html(`<p>Available Slot: ${response.slot_id}</p>`);
+                        } else {
+                            $('#availabilityStatus').html(`<p>${response.message}</p>`);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
