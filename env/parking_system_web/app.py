@@ -26,8 +26,12 @@ db = mysql.connector.connect(
 )
 cursor = db.cursor()
 
+<<<<<<< HEAD
 
 NGROK_URL = "https://dadc-49-36-90-240.ngrok-free.app"
+=======
+NGROK_URL = "https://3157-49-36-90-240.ngrok-free.app"
+>>>>>>> fda2c59666376408187e4124538d6a0310b9ae10
 
 @app.route('/')
 def index():
@@ -49,8 +53,13 @@ def check_availability():
         return jsonify({"status": "error", "message": f"Database error: {str(e)}"})
 
 def extract_vehicle_number_easyocr(image_path):
+<<<<<<< HEAD
     reader = easyocr.Reader(['en'])  
     results = reader.readtext(image_path, detail=0)
+=======
+    reader = easyocr.Reader(['en']) 
+    results = reader.readtext(image_path, detail=0)  
+>>>>>>> fda2c59666376408187e4124538d6a0310b9ae10
     return " ".join(results).strip()
 
 @app.route('/create_ticket', methods=['POST'])
@@ -61,12 +70,20 @@ def create_ticket():
     if not vehicle_number or not vehicle_image:
         return jsonify({"status": "error", "message": "Vehicle number and image are required!"})
 
+<<<<<<< HEAD
+=======
+  
+>>>>>>> fda2c59666376408187e4124538d6a0310b9ae10
     image_path = os.path.join(app.config['UPLOAD_FOLDER'], vehicle_image.filename)
     vehicle_image.save(image_path)
 
     try:
         extracted_text = extract_vehicle_number_easyocr(image_path)
+<<<<<<< HEAD
         logging.info(f"Extracted text: {extracted_text}")  
+=======
+        logging.info(f"Extracted text: {extracted_text}") 
+>>>>>>> fda2c59666376408187e4124538d6a0310b9ae10
         if vehicle_number not in extracted_text:
             return jsonify({"status": "error", "message": "License plate does not match the entered vehicle number!"})
     except Exception as e:
@@ -89,7 +106,11 @@ def create_ticket():
         cursor.execute("UPDATE ParkingSlots SET status = 'occupied' WHERE slot_id = %s", (slot_id,))
         db.commit()
 
+<<<<<<< HEAD
         qr_data = f"{https://dadc-49-36-90-240.ngrok-free.app}/validate_ticket?ticket_id={ticket_id}"
+=======
+        qr_data = f"{https://3157-49-36-90-240.ngrok-free.app}/validate_ticket?ticket_id={ticket_id}"
+>>>>>>> fda2c59666376408187e4124538d6a0310b9ae10
         qr = qrcode.make(qr_data)
         qr_path = os.path.join('static', 'images', f"{ticket_id}.png")
         qr.save(qr_path)
