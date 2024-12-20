@@ -12,12 +12,12 @@ import logging
 
 app = Flask(__name__)
 
-# Configure upload folder
+
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Configure database connection
+
 db = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -26,8 +26,8 @@ db = mysql.connector.connect(
 )
 cursor = db.cursor()
 
-# Ngrok URL (replace with your ngrok public URL)
-NGROK_URL = "https://3157-49-36-90-240.ngrok-free.app"
+
+NGROK_URL = "https://dadc-49-36-90-240.ngrok-free.app"
 
 @app.route('/')
 def index():
@@ -49,8 +49,8 @@ def check_availability():
         return jsonify({"status": "error", "message": f"Database error: {str(e)}"})
 
 def extract_vehicle_number_easyocr(image_path):
-    reader = easyocr.Reader(['en'])  # Initialize the EasyOCR reader with English language
-    results = reader.readtext(image_path, detail=0)  # Read text from the image
+    reader = easyocr.Reader(['en'])  
+    results = reader.readtext(image_path, detail=0)
     return " ".join(results).strip()
 
 @app.route('/create_ticket', methods=['POST'])
@@ -61,20 +61,17 @@ def create_ticket():
     if not vehicle_number or not vehicle_image:
         return jsonify({"status": "error", "message": "Vehicle number and image are required!"})
 
-    # Save the uploaded image
     image_path = os.path.join(app.config['UPLOAD_FOLDER'], vehicle_image.filename)
     vehicle_image.save(image_path)
 
-    # Perform OCR using EasyOCR
     try:
         extracted_text = extract_vehicle_number_easyocr(image_path)
-        logging.info(f"Extracted text: {extracted_text}")  # Log the extracted text for debugging
+        logging.info(f"Extracted text: {extracted_text}")  
         if vehicle_number not in extracted_text:
             return jsonify({"status": "error", "message": "License plate does not match the entered vehicle number!"})
     except Exception as e:
         return jsonify({"status": "error", "message": f"OCR error: {str(e)}"})
 
-    # Check for vacant slots
     cursor.execute("SELECT slot_id FROM ParkingSlots WHERE status = 'vacant' LIMIT 1")
     vacant_slot = cursor.fetchone()
 
@@ -83,24 +80,20 @@ def create_ticket():
         ticket_id = "TICKET" + str(random.randint(1000, 9999))
         expiry_time = datetime.now() + timedelta(hours=2)
 
-        # Insert into database
         cursor.execute(
             "INSERT INTO Tickets (ticket_id, slot_id, vehicle_number, status, expiry_time) VALUES (%s, %s, %s, %s, %s)",
             (ticket_id, slot_id, vehicle_number, 'active', expiry_time)
         )
         db.commit()
 
-        # Update slot status
         cursor.execute("UPDATE ParkingSlots SET status = 'occupied' WHERE slot_id = %s", (slot_id,))
         db.commit()
 
-        # Generate QR Code
-        qr_data = f"{https://3157-49-36-90-240.ngrok-free.app}/validate_ticket?ticket_id={ticket_id}"
+        qr_data = f"{https://dadc-49-36-90-240.ngrok-free.app}/validate_ticket?ticket_id={ticket_id}"
         qr = qrcode.make(qr_data)
         qr_path = os.path.join('static', 'images', f"{ticket_id}.png")
         qr.save(qr_path)
 
-        # Generate PDF
         pdf_path = os.path.join('static', 'tickets', f"{ticket_id}.pdf")
         c = canvas.Canvas(pdf_path)
         c.setFont("Helvetica-Bold", 20)
@@ -126,15 +119,12 @@ def create_ticket():
 @app.route('/slot_status', methods=['GET'])
 def slot_status():
     try:
-        cursor.execute("SELECT slot_id, status, vehicle_number FROM ParkingSlots")
+        cursor.execute("SELECT slot_id, status FROM ParkingSlots")
         slots = cursor.fetchall()
-        slot_data = [
-            {"slot_id": slot[0], "status": slot[1], "vehicle_number": slot[2] if slot[2] else "N/A"}
-            for slot in slots
-        ]
-        return jsonify({"status": "success", "slots": slot_data})
+        slot_data = [{"slot_id": slot[0], "status": slot[1]} for slot in slots]
+        return render_template("slot_status.html", slots=slot_data)
     except Exception as e:
-        return jsonify({"status": "error", "message": f"Database error: {str(e)}"})
+        return f"Error fetching slot statuses: {str(e)}"
 
 @app.route('/update_slot_status', methods=['POST'])
 def update_slot_status():
@@ -143,9 +133,15 @@ def update_slot_status():
     try:
         cursor.execute("UPDATE ParkingSlots SET status = %s WHERE slot_id = %s", (new_status, slot_id))
         db.commit()
-        return jsonify({"status": "success", "message": "Slot status updated successfully!"})
+        return redirect(url_for('slot_status'))
     except Exception as e:
-        return jsonify({"status": "error", "message": f"Database error: {str(e)}"})
+        return f"Error updating slot status: {str(e)}"
+
+    
+@app.route('/admin')
+def admin_dashboard():
+    return render_template('admin.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)

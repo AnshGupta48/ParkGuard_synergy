@@ -11,7 +11,7 @@
     <div class="container">
         <h1>Parking Slot Monitoring</h1>
         <div id="slot-panel">
-            <!-- Slots will be dynamically populated here -->
+            <!--Slot-->
         </div>
     </div>
 
@@ -23,7 +23,9 @@
                     slotPanel.empty();
 
                     data.slots.forEach(slot => {
-                        const color = slot.status === "vacant" ? "green" : (slot.status === "occupied" ? "red" : "yellow");
+                        const color = slot.status === "vacant" ? "green" :
+                                      slot.status === "occupied" ? "red" :
+                                      "yellow";
                         slotPanel.append(`
                             <div class="slot" style="background-color: ${color};">
                                 <p>Slot ID: ${slot.slot_id}</p>
